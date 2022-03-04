@@ -40,7 +40,7 @@ proc main {.async.} =
       await req.respond(Http200, readFile("dist/plugin.js"), headers.newHttpHeaders())
       FileWatcher.needsReload = false;
   FileWatcher.buildPlugin()
-  server.listen(Port(port)) # or Port(8080) to hardcode the standard HTTP port.
+  server.listen(Port(port))
   let port = server.getPort
   echo "You can now develop this plugin using this code: " & $port.uint16
   while true:
