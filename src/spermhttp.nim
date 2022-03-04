@@ -22,7 +22,6 @@ proc main {.async.} =
   var server = newAsyncHttpServer()
   proc cb(req: Request) {.async.} =
     #echo (req.reqMethod, req.url, req.headers)
-    echo(req.url.path)
     if (req.url.path == "/"):
       let headers = {"Content-type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*"}
       await req.respond(Http200, "sperm http", headers.newHttpHeaders())
