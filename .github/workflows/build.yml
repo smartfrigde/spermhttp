@@ -1,0 +1,54 @@
+name: Build and release
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: '1.6.2' # default is 'stable'
+      - name: Install dependencies
+        run: nimble install -y
+      - name: Build the project on Linux
+        run: nim c -d:release src/spermhttp.nim
+      - name: Build the project on Windows
+        run: sudo apt install mingw-w64 && nim c --os:Windows -d:mingw -d:release --cpu:amd64 src/spermhttp.nim
+      - id: vars
+        shell: bash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.vars.outputs.sha_short }}
+          release_name: Release ${{ steps.vars.outputs.sha_short }}
+          draft: true
+          prerelease: false
+          body_path: ./.github/release.md
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /home/runner/work/spermhttp/spermhttp/src/spermhttp
+          asset_name: spermhttpLinux
+          asset_content_type: application/octet-stream
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /home/runner/work/spermhttp/spermhttp/src/spermhttp.exe
+          asset_name: spermhttpWindows.exe
+          asset_content_type: application/octet-stream
+      - run: |
+          curl --request PATCH \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          https://api.github.com/repos/${{ github.repository }}/releases/${{steps.create_release.outputs.id}} \
+          -d '{"draft":false}'
