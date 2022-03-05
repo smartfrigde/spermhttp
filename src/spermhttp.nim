@@ -8,6 +8,8 @@ var port:int = 42069
 var p = initOptParser()
   
 proc main {.async.} =
+  if (os.execShellCmd("sperm --version") != 0):
+    echo("We couldn't find the sperm on your system. Please install sperm using `npm i -g sperm`")
   p.next()
   case p.kind
   of cmdEnd, cmdShortOption, cmdLongOption:

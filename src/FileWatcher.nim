@@ -3,13 +3,10 @@ import std/os
 import std/json
 var needsReload*:bool;
 proc buildPlugin*() =
-  if (os.execShellCmd("sperm --version") != 0):
-    echo("We couldn't find the sperm on your system. Please install sperm using `npm i -g sperm`")
+  if (os.execShellCmd("sperm build") == 0):
+    echo("Build finished")
   else:
-    if (os.execShellCmd("sperm build") == 0):
-      echo("Build finished")
-    else:
-      echo("Build failed.")
+    echo("Build failed.")
 proc start*() {.async.}=
   var fileToWatch = parseJson(readFile("cumcord_manifest.json"))["file"].getStr()
   echo("Watching " & fileToWatch)
